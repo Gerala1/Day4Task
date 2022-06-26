@@ -8,16 +8,15 @@ import java.util.List;
 
 @Service
 public interface SpidService {
-     Spid addSpid(Spid spid);
+     Spid addSpid(Spid spid) throws Exception;
 
-    List<Spid> getAllSpids();
+     Iterable<Spid> getAllSpids() throws Exception;
 
-    Spid getSpidByUserId(Spid spidId, User user);
+    List<Spid> getSpidByUserId(User user);
+     Spid changeSpidStatus(long id) throws Exception;
+    void deleteSpid(long id) throws Exception;
+     Spid getSpid(Spid spid) throws Exception;
 
-    Spid changeSpidStatus(Spid spid);
-
-    Spid deleteSpid(Spid spid);
-
-    Spid getSpid(Spid spid);
+     Spid findSpidById(long id) throws Exception;
 
 }

@@ -7,7 +7,12 @@ import com.web.springboot.demo.demo.repository.SpidRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
+import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
+
+
 
 @Service
 public class SpidServiceImplementation implements SpidService {
@@ -15,43 +20,70 @@ public class SpidServiceImplementation implements SpidService {
     @Autowired
     private SpidRepository spidRepository;
 
+    @Transactional
     @Override
-    public Spid addSpid(Spid spid) {
-        return spidRepository.save(spid);
-    }
-
-    @Override
-    public List<Spid> getAllSpids() {
-        return null;
-    }
-
-    @Override
-    public Spid getSpidByUserId(Spid spidId, User user) {
-        Spid spid = getSpid(spidId);
-        spid.getUserId();
-        return spid;
-    }
-
-    @Override
-    public Spid changeSpidStatus(Spid spid) {
-        spid.setStatus(Status.READY_FOR_REVIEW);
-        return spidRepository.save(spid);
-    }
-
-    @Override
-    public Spid deleteSpid(Spid spid) {
-        if (spid.getStatus() != Status.PENDING) {
-            System.out.println("Status is PENDING :(");
+    public Spid addSpid(Spid spid) throws Exception{
+        Optional<Spid> findIfSpidExists = spidRepository.findById(spid.getId());
+        if(!(findIfSpidExists.isPresent())){
+            return spidRepository.save(spid);
         }
-        spidRepository.delete(spid);
-        return spid;
+        throw new RuntimeException("Useri ekziston!");
+    }
+
+
+    @Override
+    public Iterable<Spid> getAllSpids() throws Exception {
+        List<Spid> spid = (List<Spid>) spidRepository.findAll();
+        if(spid.isEmpty()){
+            throw new Exception("Nuk gjendet Spid");
+        }
+        return spidRepository.findAll();
+    }
+
+
+    @Override
+    public List<Spid> getSpidByUserId(User user) {
+        return spidRepository.findSpidByUserId(user);
     }
 
     @Override
-    public Spid getSpid(Spid spids) {
-        List<Spid> spid = (List<Spid>) spidRepository.findAll();
-        return (Spid) spid;
+    public Spid changeSpidStatus(long id) throws Exception {
+        Optional<Spid> findIfSpidExists = spidRepository.findById(id);
+        Spid spid = findSpidById(id);
+        if(!(findIfSpidExists.isPresent())){
+            throw new Exception("Spidi nuk ekziston, statusi nuk mund te ndryshohet");
+        }
+        spid.setStatus(Status.PENDING);
+        return spidRepository.save(spid);
     }
+
+    @Override
+    public void deleteSpid(long id) throws Exception {
+        Optional<Spid> findIfSpidExists = spidRepository.findById(id);
+
+        if (findIfSpidExists.isEmpty()) {
+            throw new Exception("Spid me Id nuk ekziston");
+        }
+        spidRepository.deleteById(id);
+    }
+
+    @Override
+    public Spid getSpid(Spid spids) throws Exception {
+        List<Spid> spid = (List<Spid>) spidRepository.findAll();
+        if (!(spid.size() <= 0)) {
+            return spid.get(0);
+        }
+        throw new Exception("Spidi nuk ekziston");
+    }
+
+    @Override
+    public Spid findSpidById(long id) throws Exception {
+        Optional<Spid> spid = spidRepository.findById(id);
+        if(spid.isPresent()){
+            return spid.get();
+        }
+        throw new Exception("Spid me kete id nuk ekziston");
+    }
+
+
 }
-
-
